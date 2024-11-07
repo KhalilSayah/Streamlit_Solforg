@@ -221,7 +221,6 @@ elif page == "Calculate Score":
 
             # After gathering all inputs, calculate the JT score using the function
             jt_scores = [part.score for part in criteria_list[0].criteria_parts]
-            print(jt_scores, df_summary["Employees"])  # Assuming JT is the first criterion
             mean_jt_scores = calculate_mean_scores(df_summary["Employees"], jt_scores)
             df_summary["JT"] = mean_jt_scores
 

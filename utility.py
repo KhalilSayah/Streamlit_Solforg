@@ -128,15 +128,20 @@ def get_data(data, spec):
 def format_dataframe(model, scores):
 
     number_employe = get_data(scores,"employee_count")
-    risk_coef = [1.0, 0.598, 0.5, 0.32, 0.267, 0.218, 0.19, 0.19]
-    adjusted_tokens_per_emp = model.get_btu() * risk_coef 
-    token_distributed_per_phase = number_employe * adjusted_tokens_per_emp
+    risk_coef = [1.0, 0.598, 0.5, 0.32, 0.267, 0.218, 0.19]
+    
+    adjusted_tokens_per_emp = [value * model.get_btu() for value in risk_coef]
+    
+    token_distributed_per_phase = [a * b for a, b in zip(number_employe, adjusted_tokens_per_emp)]
+    
     allocated_tokens = model.max_supply * model.base_alloc
-    percentage_total_alloc = (token_distributed_per_phase/allocated_tokens)*100
+    percentage_total_alloc = [(value / allocated_tokens) * 100 for value in token_distributed_per_phase]
+
+    
 
     return pd.DataFrame({
-        "Phases" :get_data(scores, "round" ),
-        "Number of Employees" : number_employe  ,
+        "Phase" :get_data(scores, "round" ),
+        "New Employee" : number_employe  ,
         "Risk Coefficient" : risk_coef,
         "Adjusted Tokens per Employee" : adjusted_tokens_per_emp,
         "Tokens Distributed per Phase" : token_distributed_per_phase,
