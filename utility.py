@@ -136,7 +136,7 @@ def format_dataframe(model, scores):
     
     allocated_tokens = model.max_supply * model.base_alloc
     percentage_total_alloc = [(value / allocated_tokens) * 100 for value in token_distributed_per_phase]
-
+    cost_per_employee = [value * model.listing_price for value in adjusted_tokens_per_emp] 
     
 
     return pd.DataFrame({
@@ -145,7 +145,8 @@ def format_dataframe(model, scores):
         "Risk Coefficient" : risk_coef,
         "Adjusted Tokens per Employee" : adjusted_tokens_per_emp,
         "Tokens Distributed per Phase" : token_distributed_per_phase,
-        "Percentage of Total Allocation" : percentage_total_alloc
+        "Percentage of Total Allocation" : percentage_total_alloc,
+        "Cost per Employee ($)":cost_per_employee
 
     })
 

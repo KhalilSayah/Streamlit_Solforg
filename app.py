@@ -265,10 +265,10 @@ elif page == "Calculate Score":
 
 
             df_employees = format_dataframe(st.session_state.model_init, scores_output)
-            # Visualisation des résultats avec deux graphiques
-            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+            # Visualisation des résultats avec trois graphiques
+            fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 18))
 
-            # Premier graphique - Tokens ajustés par employé et nouveaux employés par phase (sans annotations de pourcentage)
+            # Premier graphique - Tokens ajustés par employé et nouveaux employés par phase
             bars = ax1.bar(df_employees['Phase'], df_employees['Adjusted Tokens per Employee'], color='mediumseagreen', label='Adjusted Tokens per Employee')
             ax1.set_xlabel("Phase")
             ax1.set_ylabel("Adjusted Tokens per Employee", color='mediumseagreen')
@@ -279,7 +279,6 @@ elif page == "Calculate Score":
             ax2_1.step(df_employees['Phase'], df_employees['New Employee'], color='firebrick', where='mid', label='New Employees')
             ax2_1.set_ylabel("New Employees", color='firebrick')
             ax2_1.tick_params(axis='y', labelcolor='firebrick')
-
             ax1.set_title("Average Tokens Issued per Employee by Phase")
 
             # Second graphique - Tokens distribués par phase sans cumul avec annotations de pourcentage
@@ -287,14 +286,27 @@ elif page == "Calculate Score":
             ax2.set_xlabel("Phase")
             ax2.set_ylabel("Tokens Distributed per Phase", color='royalblue')
             ax2.tick_params(axis='y', labelcolor='royalblue')
-            ax2.set_title("Tokens Distributed per Phase ")
+            ax2.set_title("Tokens Distributed per Phase (Non-cumulative)")
 
             # Annoter chaque barre avec le pourcentage de répartition du total alloué
             for bar, pct in zip(bars2, df_employees['Percentage of Total Allocation']):
                 height = bar.get_height()
                 ax2.text(bar.get_x() + bar.get_width() / 2, height, f'{pct:.1f}%', ha='center', va='bottom', color='black', fontsize=10)
 
+            # Troisième graphique - Coût en dollars par employé par phase
+            bars3 = ax3.bar(df_employees['Phase'], df_employees['Cost per Employee ($)'], color='slateblue', label='Cost per Employee ($)')
+            ax3.set_xlabel("Phase")
+            ax3.set_ylabel("Cost per Employee ($)", color='slateblue')
+            ax3.tick_params(axis='y', labelcolor='slateblue')
+            ax3.set_title("Base Compensation per Employee by Phase in Dollars @TGE listing price")
+
+            # Annoter chaque barre avec le coût en dollars
+            for bar, cost in zip(bars3, df_employees['Cost per Employee ($)']):
+                height = bar.get_height()
+                ax3.text(bar.get_x() + bar.get_width() / 2, height, f'${cost:.2f}', ha='center', va='bottom', color='black', fontsize=10)
+
             plt.tight_layout()
+            plt.show()
             st.pyplot(fig)
 
 
