@@ -130,7 +130,9 @@ def get_data(data, spec):
 def format_dataframe(model, scores):
 
     number_employe = get_data(scores,"employee_count")
-    risk_coef = [1.0, 0.598, 0.5, 0.32, 0.267, 0.218, 0.19]
+    valuations = [round.valuation for round in model.finance_rounds.rounds][:-1]
+    valuations.append(0.15)
+    risk_coef = calculate_normalized_risk_coefficient(valuations)
     
     adjusted_tokens_per_emp = [value * model.get_btu() for value in risk_coef]
     
