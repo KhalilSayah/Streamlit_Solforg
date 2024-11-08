@@ -376,14 +376,28 @@ elif page == "Calculate Score":
             st.pyplot(fig2)
 
 
+            # Calculer le montant final en dollars pour chaque employé après les 4 ans (8 cycles)
 
+            # Prix en dollars par token
+            token_price = st.session_state.model_init.listing_price
 
+            # Calculer le total des bonus en dollars pour chaque employé dans le scénario de base
+            final_dollar_bonus_per_employee = {emp: path[-1] * token_price * 1_000_000 for emp, path in employee_paths_base.items()}
 
+            # Créer un DataFrame pour faciliter l'affichage
+            df_dollar_bonus = pd.DataFrame(list(final_dollar_bonus_per_employee.items()), columns=['Employee', 'Dollar Equivalent Bonus'])
+            df_dollar_bonus.sort_values(by='Dollar Equivalent Bonus', ascending=False, inplace=True)
 
+            # Afficher la distribution en dollars pour chaque employé sous forme de graphique
+            fig3 = plt.figure(figsize=(12, 6))
+            plt.bar(df_dollar_bonus['Employee'], df_dollar_bonus['Dollar Equivalent Bonus'], color='skyblue')
+            plt.xlabel("Employee ID")
+            plt.ylabel("Total Bonus in USD after 4 years")
+            plt.title(f"Distribution of Dollar Equivalent ({token_price}) of Bonus per Employee after 4 Years")
 
-
-
-
+            plt.tight_layout()
+            plt.show()
+            st.pyplot(fig3)
 
 
     else:
