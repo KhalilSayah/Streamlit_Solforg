@@ -251,7 +251,7 @@ elif page == "Calculate Score":
             valuations = [round.valuation for round in st.session_state.model_init.finance_rounds.rounds][:-1]
             print(valuations)
             risk_coefficients = calculate_normalized_risk_coefficient(valuations)
-            risk_coefficients = np.append(risk_coefficients, 0.15)
+            risk_coefficients = np.append(risk_coefficients, 15)
             
             print(risk_coefficients)
 
