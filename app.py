@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from criterias import get_criteria_list
 from models import CategoricalCriteria, FinanceRound, FinancingRounds, ModelInit, NumericCriteria
-from utility import calculate_mean_scores, calculate_score, format_dataframe, get_bonus_criteria_values, get_data, initialize_arrival_cycles, simulate_depletion_full_with_adjustment, simulate_employee_paths_custom
+from utility import calculate_mean_scores, calculate_normalized_risk_coefficient, calculate_score, format_dataframe, get_bonus_criteria_values, get_data, initialize_arrival_cycles, simulate_depletion_full_with_adjustment, simulate_employee_paths_custom
 
 # Initialize session state for criteria list
 if 'criteria_list' not in st.session_state:
@@ -37,7 +37,7 @@ if page == "Model Initialization":
     # Table to input financing rounds data
     st.subheader("Funding Rounds")
     st.write("Define each funding round by specifying start and end dates, raised funds, and company valuations. These inputs will allow you to model token allocations over time, accounting for the dynamics of both company growth and individual employee contributions.")
-    round_labels = ["Pre-seed", "Strategic Angels", "Seed", "Strategic Bridge", "Series A", "Private Sale", "TGE"]
+    round_labels = ["Pre-seed", "Strategic Angels", "Seed", "Strategic Bridge", "Series A", "Private Sale", "TGE", "Revenues"]
     rounds_data = []
 
     for label in round_labels:
@@ -248,7 +248,9 @@ elif page == "Calculate Score":
             BTU = st.session_state.model_init.get_btu()
 
             # Coefficients de risque pour chaque phase
-            risk_coefficients = [1.0, 0.598, 0.5, 0.32, 0.267, 0.218, 0.19, 0.19]
+            valuations = [round.valuation for round in st.session_state.model_init.finance_rounds.rounds][:-1]
+            valuations.append(0.15)
+            risk_coefficients = calculate_normalized_risk_coefficient(valuations)
 
             employees_per_phase_30_percent_increase = [int(employees * 1.3) for employees in employees_per_phase]
 
