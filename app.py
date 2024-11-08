@@ -18,11 +18,13 @@ if 'model_init' not in st.session_state:
 
 # Sidebar for page navigation
 st.sidebar.title("Navigation")
+st.sidebar.write("Select a page to navigate")
 page = st.sidebar.selectbox("Go to", ["Model Initialization", "Modify Scores & View Tables", "Calculate Score"])
 
 # Model Initialization Page
 if page == "Model Initialization":
     st.title("Model Initialization")
+    st.write("This tool allows you to simulate token distribution based on financial milestones and performance criteria. Begin by setting foundational parameters, including the total token supply, listing price, and allocation percentages for both base and bonus distributions to employees. ")
 
     # Input fields for the primary parameters
     st.subheader("Input Initialization")
@@ -33,7 +35,8 @@ if page == "Model Initialization":
     employees = st.number_input("Employees", value=95, step=1)
 
     # Table to input financing rounds data
-    st.subheader("Financing Rounds")
+    st.subheader("Funding Rounds")
+    st.write("Define each funding round by specifying start and end dates, raised funds, and company valuations. These inputs will allow you to model token allocations over time, accounting for the dynamics of both company growth and individual employee contributions.")
     round_labels = ["Pre-seed", "Strategic Angels", "Seed", "Strategic Bridge", "Series A", "Private Sale", "TGE"]
     rounds_data = []
 
@@ -80,6 +83,7 @@ elif page == "Modify Scores & View Tables":
 
     # Sidebar for selecting a criterion to modify
     st.sidebar.header("Select a Criterion to Modify")
+    st.sidebar.write("You can switch from one criterion to another using this panel.")
     criteria_labels = [criterion.label for criterion in st.session_state.criteria_list]
     selected_criteria_label = st.sidebar.selectbox("Choose a criterion", criteria_labels)
 
@@ -111,6 +115,7 @@ elif page == "Modify Scores & View Tables":
 
     # Display all criteria tables on the right side
     st.subheader("All Criteria and Scores")
+    st.write("In this section, you can fine-tune specific scoring criteria that influence employee base & bonus  tokens distributions over time.")
     for criterion in st.session_state.criteria_list:
         st.subheader(criterion.label)
         
@@ -133,6 +138,7 @@ elif page == "Modify Scores & View Tables":
 # Calculate Score Page
 elif page == "Calculate Score":
     st.header("Round-by-Round Score Calculation")
+    st.write("In this simulation step, you will input data for each funding stage. Instead of specifying criteria for each of the total expected employees, you will define a primary criterion that best represents the persona type most likely associated with each stage. This criterion will receive the highest weight, and the remaining options will be populated randomly, simulating variability within that stage’s workforce. This approach saves time and allows us to quickly visualize edge cases and potential outcomes in each scenario.")
 
     # Initialize session state for tracking rounds and storing inputs
     if 'current_round_index' not in st.session_state:
@@ -255,7 +261,7 @@ elif page == "Calculate Score":
             plt.plot(range(len(remaining_allocation_risk_30_adjusted)), remaining_allocation_risk_30_adjusted, marker='x', color='blue', linestyle='--', label="Token Risk Allocation (+30% Employees, Adjusted)")
             plt.xlabel("Number of Employees Hired")
             plt.ylabel("Remaining Allocation (Millions)")
-            plt.title("Depletion of Token Risk Allocation (BTU1) with Adjusted Coefficients and +30% Employees")
+            plt.title("Base token allocation Depletion analysis")
             plt.legend()
             plt.tight_layout()
             plt.text(len(remaining_allocation_with_risk_adjusted)-1, remaining_allocation_with_risk_adjusted[-1] + 2, f'Final Reserve Base Adjusted: {final_reserve_adjusted:.2f}M', color='purple', ha='right', fontsize=10, weight='bold')
@@ -352,6 +358,8 @@ elif page == "Calculate Score":
                 arrival_cycles_30, BTU2, bcf_options, total_tokens_for_bonus,IP_values,PI_values,IC_values,TA_values, skewness=skewness_input, cycles=cycles
             )
 
+            st.write("This graph visualizes the cumulative distribution of token bonuses over an 8-cycle period (equivalent to 4 years, with each cycle representing 6 months). The colored step lines show how tokens are accumulated for each employee, adjusted by their performance scores and the applied skewness. The variation in color indicates different employees, demonstrating the diversity in their token accumulation paths. On the right-hand axis, the dashed lines represent the total token allocation remaining over time. The blue line shows the baseline scenario with the original number of employees, while the green line accounts for an increase of 30% in the employee count. This dual-axis approach helps us quickly see the impact of increasing the number of employees on the token reserves, allowing for quick identification of potential edge cases where allocation might be depleted before the 8 cycles are complete.")
+
             fig2 = plt.figure(figsize=(12, 6))
             colors = plt.cm.plasma(np.linspace(0, 1, len(employee_paths_base)))  # Palette de couleurs plus distincte
             for idx, (employee_id, path) in enumerate(employee_paths_base.items()):
@@ -359,7 +367,7 @@ elif page == "Calculate Score":
 
             plt.xlabel("Cycles (6 months)")
             plt.ylabel("Cumulative Tokens per Employee (Millions)")
-            plt.title("Token Bonus Allocation: Adjustable Skewness and Total Allocation Depletion")
+            plt.title("Bonus token allocation Depletion analysis ")
 
             ax1 = plt.gca()
             ax2 = ax1.twinx()
