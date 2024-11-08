@@ -14,7 +14,7 @@ def calculate_normalized_risk_coefficient(valuations:np.array):
     max_risk_coefficient = initial_risk_coefficients.max()
    
     # Normaliser sur une base de 100
-    normalized_risk_coefficients = (initial_risk_coefficients / max_risk_coefficient) * 100
+    normalized_risk_coefficients = (initial_risk_coefficients / max_risk_coefficient)
    
     return normalized_risk_coefficients
 
@@ -133,7 +133,7 @@ def format_dataframe(model, scores):
     valuations = [round.valuation for round in model.finance_rounds.rounds][:-1]
     print(f"utility valuatuions : {valuations}")
     risk_coef = calculate_normalized_risk_coefficient(valuations)
-    risk_coef = np.append(risk_coef, 15)
+    risk_coef = np.append(risk_coef, 0.15)
 
     print(f"utility risk : {risk_coef}")
     
