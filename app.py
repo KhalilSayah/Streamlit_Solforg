@@ -241,7 +241,8 @@ elif page == "Calculate Score":
             st.text_area("JSON Output", value=scores_output, height=300)
 
             # Données pour les phases et leurs employés de base
-            employees_per_phase = get_data(scores_output,"employee_count") # Nombre d'employés pour chaque phase
+            employees_per_phase = get_data(scores_output,"employee_count")
+            print(employees_per_phase) # Nombre d'employés pour chaque phase
 
             # Allocation de base et BTU
             total_tokens_for_employees = st.session_state.model_init.max_supply * st.session_state.model_init.base_alloc
@@ -251,7 +252,7 @@ elif page == "Calculate Score":
             valuations = [round.valuation for round in st.session_state.model_init.finance_rounds.rounds][:-1]
             print(valuations)
             risk_coefficients = calculate_normalized_risk_coefficient(valuations)
-            risk_coefficients = np.append(risk_coefficients, 15)
+            risk_coefficients = np.append(risk_coefficients, 0.15)
             
             print(risk_coefficients)
 
