@@ -1,6 +1,8 @@
 import json
+import random
 import numpy as np
 import pandas as pd
+from scipy.stats import skewnorm
 
 from models import CategoricalCriteriaPart
 
@@ -151,3 +153,95 @@ def format_dataframe(model, scores):
     })
 
     
+def get_cycle_from_date(date_str,start_date):
+    date = pd.to_datetime(date_str)
+    return int((date - start_date).days // 182) + 1  # Conversion en cycles de 6 mois, ajusté pour commencer à 1
+
+def initialize_arrival_cycles(employee_arrivals,start_date):
+    arrival_cycles = []
+    for phase, (num_employees, start, end) in employee_arrivals.items():
+        start_cycle = get_cycle_from_date(start,start_date)
+        end_cycle = get_cycle_from_date(end,start_date)
+        arrival_cycles.extend([random.randint(start_cycle, end_cycle) for _ in range(num_employees)])
+    return arrival_cycles
+
+def generate_stochastic_coefficients(skewness,IP_values,PI_values,IC_values,TA_values):
+    def skewed_choice(values):
+        choice = list(values.values())
+        if skewness == 0:
+            return random.choice(choice)
+        else:
+            skewed_distribution = skewnorm.rvs(a=skewness, size=1)
+            index = min(max(int((skewed_distribution[0] + 1) * (len(choice) / 2)), 0), len(choice) - 1)
+            return choice[index]
+    
+    return {
+        "IP": skewed_choice(IP_values),
+        "PI": skewed_choice(PI_values),
+        "IC": skewed_choice(IC_values),
+        "TA": skewed_choice(TA_values)
+    }
+
+def adjust_score(score):
+    variation = random.uniform(-0.3, 0.3)  # Variation de -30% à +30%
+    return score * (1 + variation)
+
+def simulate_employee_paths_custom(arrival_cycles, btu, bcf_options, total_allocation,IP_values,PI_values,IC_values,TA_values, skewness=0, cycles=8, min_token=1_000):
+    employee_paths = {emp: [] for emp in range(len(arrival_cycles))}
+    remaining_allocation = []
+    
+    for cycle in range(1, cycles + 1):  # Parcourir chaque cycle, en commençant à 1
+        cycle_allocation = total_allocation
+        for employee_id, arrival_cycle in enumerate(arrival_cycles):
+            if arrival_cycle > cycle:
+                employee_paths[employee_id].append(employee_paths[employee_id][-1] if employee_paths[employee_id] else 0)
+                continue
+            
+            coefficients = generate_stochastic_coefficients(skewness,IP_values,PI_values,IC_values,TA_values)
+            base_score = (coefficients["IP"] + coefficients["PI"] + coefficients["IC"] + coefficients["TA"]) / 4
+            adjusted_score = adjust_score(base_score)
+            
+            bcf = random.choice(list(bcf_options.values()))
+            tokens_received = max(btu * bcf * adjusted_score, min_token)
+            
+            tokens_distributed = min(tokens_received, total_allocation)
+            cycle_allocation -= tokens_distributed
+            total_allocation -= tokens_distributed
+            if employee_paths[employee_id]:
+                employee_paths[employee_id].append(employee_paths[employee_id][-1] + tokens_distributed / 1_000_000)
+            else:
+                employee_paths[employee_id].append(tokens_distributed / 1_000_000)
+        
+        remaining_allocation.append(total_allocation / 1_000_000)
+    
+    return employee_paths, remaining_allocation
+
+
+
+def get_bonus_criteria_values(criterialist):
+    # Initialize the dictionaries
+    IP_values = {}
+    PI_values = {}
+    IC_values = {}
+    TA_values = {}
+
+    # Iterate through criteria list and extract the relevant bonus criteria
+    for criteria in criterialist:
+        if criteria.label == "Bonus - Individual Performance":
+            for part in criteria.criteria_parts:
+                IP_values[part.label] = part.score
+        
+        elif criteria.label == "Bonus - Project Impact":
+            for part in criteria.criteria_parts:
+                PI_values[part.label] = part.score
+        
+        elif criteria.label == "Bonus - Innovation Contribution":
+            for part in criteria.criteria_parts:
+                IC_values[part.label] = part.score
+        
+        elif criteria.label == "Bonus - Tenure Adjustment":
+            for part in criteria.criteria_parts:
+                TA_values[part.label] = part.score
+
+    # Return the dictionaries with the extracted values
+    return IP_values, PI_values, IC_values, TA_values

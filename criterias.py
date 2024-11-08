@@ -79,7 +79,7 @@ def get_criteria_list():
         ),
         CategoricalCriteria(
             criteria_type = 'bonus',
-            label="Bonus - Inovation Contribution",
+            label="Bonus - Innovation Contribution",
             criteria_parts=[
                 CategoricalCriteriaPart(label="Standard", score=1),
                 CategoricalCriteriaPart(label="Notable Innovation", score=1.15),
@@ -90,7 +90,7 @@ def get_criteria_list():
         ),
         CategoricalCriteria(
             criteria_type = 'bonus',
-            label="Bonus - Tenure Adjustement",
+            label="Bonus - Tenure Adjustment",
             criteria_parts=[
                 CategoricalCriteriaPart(label="0-2 Years", score=1),
                 CategoricalCriteriaPart(label="2-4 Years", score=1.1),

@@ -1,11 +1,12 @@
 import json
+import numpy as np
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt 
 
 from criterias import get_criteria_list
 from models import CategoricalCriteria, FinanceRound, FinancingRounds, ModelInit, NumericCriteria
-from utility import calculate_mean_scores, calculate_score, format_dataframe, get_data, simulate_depletion_full_with_adjustment
+from utility import calculate_mean_scores, calculate_score, format_dataframe, get_bonus_criteria_values, get_data, initialize_arrival_cycles, simulate_depletion_full_with_adjustment, simulate_employee_paths_custom
 
 # Initialize session state for criteria list
 if 'criteria_list' not in st.session_state:
@@ -308,6 +309,78 @@ elif page == "Calculate Score":
             plt.tight_layout()
             plt.show()
             st.pyplot(fig)
+
+
+
+            # THIS PART NEED TO BE RECODE 
+            total_tokens_for_bonus = st.session_state.model_init.max_supply * st.session_state.model_init.bonus_alloc
+            cycles = 8
+            BTU2 = st.session_state.model_init.get_btu("bonus")
+            bcf_options = {1.0: 1.0, 0.85: 0.85, 0.7: 0.7, 0.55: 0.55}
+            skewness_input = 0
+
+            rounds = df_employees['Phase']
+            start_dates = [round.start for round in st.session_state.model_init.finance_rounds.rounds]
+            end_dates = [round.end for round in st.session_state.model_init.finance_rounds.rounds]
+            employee_numbers = employees_per_phase
+
+            employee_arrivals_base = {
+                rounds[i]: (employee_numbers[i], start_dates[i], end_dates[i]) 
+                for i in range(len(rounds))
+            }
+
+            employee_arrivals_30 = {phase: (int(count * 1.3), start, end) for phase, (count, start, end) in employee_arrivals_base.items()}
+
+            # Coefficients pour chaque critère de performance (IP, PI, IC, TA)
+            IP_values, PI_values, IC_values, TA_values = get_bonus_criteria_values(st.session_state.criteria_list)
+            print("IP Values:", IP_values)
+            print("PI Values:", PI_values)
+            print("IC Values:", IC_values)
+            print("TA Values:", TA_values)
+
+
+            # Convertir les dates en format cycle
+            start_date = pd.to_datetime("2024-05-01")
+
+            arrival_cycles_base = initialize_arrival_cycles(employee_arrivals_base,start_date)
+            arrival_cycles_30 = initialize_arrival_cycles(employee_arrivals_30,start_date)
+
+            employee_paths_base, remaining_allocation_base = simulate_employee_paths_custom(
+                arrival_cycles_base, BTU2, bcf_options, total_tokens_for_bonus, IP_values,PI_values,IC_values,TA_values,skewness=skewness_input, cycles=cycles,
+            )
+            employee_paths_30, remaining_allocation_30 = simulate_employee_paths_custom(
+                arrival_cycles_30, BTU2, bcf_options, total_tokens_for_bonus,IP_values,PI_values,IC_values,TA_values, skewness=skewness_input, cycles=cycles
+            )
+
+            fig2 = plt.figure(figsize=(12, 6))
+            colors = plt.cm.plasma(np.linspace(0, 1, len(employee_paths_base)))  # Palette de couleurs plus distincte
+            for idx, (employee_id, path) in enumerate(employee_paths_base.items()):
+                plt.step(range(1, len(path) + 1), path, where='post', alpha=0.5, color=colors[idx])
+
+            plt.xlabel("Cycles (6 months)")
+            plt.ylabel("Cumulative Tokens per Employee (Millions)")
+            plt.title("Token Bonus Allocation: Adjustable Skewness and Total Allocation Depletion")
+
+            ax1 = plt.gca()
+            ax2 = ax1.twinx()
+            ax2.plot(range(1, len(remaining_allocation_base) + 1), remaining_allocation_base, color='blue', linestyle='--', label="Total Allocation Remaining (Base)")
+            ax2.set_ylim(0, max(remaining_allocation_base) + 2)
+            ax2.set_ylabel("Remaining Allocation (Millions)", color='blue')
+            ax2.tick_params(axis='y', labelcolor='blue')
+
+            ax2.plot(range(1, len(remaining_allocation_30) + 1), remaining_allocation_30, color='green', linestyle='--', label="Total Allocation Remaining (+30% Employees)")
+
+            ax2.legend(loc="upper right")
+            plt.tight_layout()
+            plt.show()
+            st.pyplot(fig2)
+
+
+
+
+
+
+
 
 
 
