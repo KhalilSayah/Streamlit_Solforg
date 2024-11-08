@@ -133,7 +133,7 @@ def format_dataframe(model, scores):
     valuations = [round.valuation for round in model.finance_rounds.rounds][:-1]
     print(f"utility valuatuions : {valuations}")
     risk_coef = calculate_normalized_risk_coefficient(valuations)
-    risk_coef = np.append(risk_coef, 0.15)
+    risk_coef = np.append(risk_coef, 15)
 
     print(f"utility risk : {risk_coef}")
     
